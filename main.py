@@ -8,8 +8,8 @@ IMG_HEIGHT = 224
 IMG_WIDTH = 224
 BATCH_SIZE = 32
 EPOCHS = 10
-TRAIN_DIR = "data/asl-alphabet-train"
-TEST_DIR = "data/asl-alphabet-test"
+TRAIN_DIR = "data/asl_alphabet_train"
+TEST_DIR = "data/asl_alphabet_test"
 MODEL_PATH = "models/sign_language_mobilenetv2.h5"
 
 # load train dataset
