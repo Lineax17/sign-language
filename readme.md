@@ -9,9 +9,9 @@ https://www.kaggle.com/datasets/grassknoted/asl-alphabet?resource=download
 ## Preparing the Dataset for training
 
 1. Download the dataset from kaggle.com over the link above.
-2. Rename the folder ../archive/asl_alphabet_train/asl_alphabet_train to asl_alphabet_original
-3. Copy the renamed folder to the ../data directory
-4. Run the split_data.py script
+2. Rename the folder ```.../archive/asl_alphabet_train/asl_alphabet_train``` to ```asl_alphabet_original```
+3. Copy the renamed folder to the ```/data``` directory
+4. Run the ```split_data.py``` script
 
 ### Explaination
 
