@@ -4,11 +4,16 @@ from tensorflow.keras.applications import MobileNetV2
 from kerastuner.tuners import Hyperband
 import os
 from pathlib import Path
+from tensorflow.keras.mixed_precision import set_global_policy
+
+# Tweak für RTX 30xx oder neuer
+set_global_policy('mixed_float16')
+
 
 # Einstellungen
 IMG_HEIGHT = 224
 IMG_WIDTH = 224
-BATCH_SIZE = 16
+BATCH_SIZE = 4
 EPOCHS = 10
 SEED = 467
 MODEL_PATH = "models/sign_language_mobilenetv2.h5"
@@ -48,11 +53,11 @@ test_ds = tf.keras.utils.image_dataset_from_directory(
 # Klassenanzahl ermitteln
 num_classes = len(train_ds.class_names)
 
-# Prefetch für Performance
+# Prefetch für Performance, kann Speicherbedarf erhöhen
 AUTOTUNE = tf.data.AUTOTUNE
-train_ds = train_ds.prefetch(AUTOTUNE)
-val_ds = val_ds.prefetch(AUTOTUNE)
-test_ds = test_ds.prefetch(AUTOTUNE)
+# train_ds = train_ds.prefetch(AUTOTUNE)
+# val_ds = val_ds.prefetch(AUTOTUNE)
+# test_ds = test_ds.prefetch(AUTOTUNE)
 
 # Modellbau für Tuning
 def build_model(hp):
@@ -75,7 +80,7 @@ def build_model(hp):
     hp_dropout = hp.Float("dropout", min_value=0.2, max_value=0.5, step=0.1)
     model.add(layers.Dropout(hp_dropout))
 
-    model.add(layers.Dense(num_classes, activation='softmax'))
+    model.add(layers.Dense(num_classes, activation='softmax', dtype='float32'))
 
     model.compile(
         optimizer='adam',
@@ -88,10 +93,11 @@ def build_model(hp):
 tuner = Hyperband(
     build_model,
     objective='val_accuracy',
-    max_epochs=10,
-    factor=3,
+    max_epochs=3,
+    executions_per_trial=1,
     directory='tuner_logs',
-    project_name='asl_tuning'
+    project_name='asl_quick',
+    overwrite=True
 )
 
 # Autotuning
