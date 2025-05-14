@@ -13,13 +13,16 @@ https://www.kaggle.com/datasets/grassknoted/asl-alphabet?resource=download
 3. Copy the renamed folder to the ```/data``` directory
 4. Run the ```split_data.py``` script
 
-### Explaination
+### Explaination on Splitting and Methodology
 
-The dataset consists of 2 directories: asl_alphabet_train with hold approximately 3000 images per letter
-and asl_alphabet_test which holds only one image per letter. 
-To simplify thing we take only the asl_alphabet_train directory and split it into training and test data.
-The asl_alphabet_original directory stays untouched when you run the split_data.py script. The train and 
-test directories will be overwriten if you re-run the script.
+The dataset consists of 2 directories: ```asl_alphabet_train``` which holds approximately 3000 images per letter
+and ```asl_alphabet_test``` which holds only one image per letter. 
+To simplify things we take only the ```asl_alphabet_train``` directory and split it into training, validation 
+and test data.
+The ```asl_alphabet_original``` directory stays untouched when you run the ```split_data.py``` script. The train, val and 
+test directories will be overwriten if you re-run the script. To ensure correct methodology we split into 50% test, 
+20% validation and 30% test data. We are tuning our neuronal net on the validation set and merge the train and validation
+dataset for the final training.
 Feel free to modify this script to experiment with this dataset.
 
 
