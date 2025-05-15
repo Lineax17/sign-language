@@ -15,7 +15,7 @@ set_global_policy('mixed_float16')
 # Einstellungen
 IMG_HEIGHT = 224
 IMG_WIDTH = 224
-BATCH_SIZE = 4
+BATCH_SIZE = 8
 EPOCHS = 10
 SEED = 467
 MODEL_PATH = "models/sign_language_mobilenetv2.h5"
@@ -96,6 +96,7 @@ tuner = RandomSearch(
     build_model,
     objective='val_accuracy',
     seed=SEED,
+    max_trials=10,
     executions_per_trial=2,
     directory='tuner_logs',
     project_name='asl_quick',
