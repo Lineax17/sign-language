@@ -1,8 +1,10 @@
 import tensorflow as tf
 from tensorflow.keras import layers, models
 from tensorflow.keras.applications import MobileNetV2
-from kerastuner.tuners import Hyperband
+from kerastuner.tuners import RandomSearch
 import os
+import gc
+import tensorflow.keras.backend as K
 from pathlib import Path
 from tensorflow.keras.mixed_precision import set_global_policy
 
@@ -90,11 +92,11 @@ def build_model(hp):
     return model
 
 # Tuner initialisieren
-tuner = Hyperband(
+tuner = RandomSearch(
     build_model,
     objective='val_accuracy',
-    max_epochs=3,
-    executions_per_trial=1,
+    seed=SEED,
+    executions_per_trial=2,
     directory='tuner_logs',
     project_name='asl_quick',
     overwrite=True
@@ -105,6 +107,11 @@ tuner.search(train_ds, validation_data=val_ds, epochs=EPOCHS)
 
 # Bestes Modell holen
 best_model = tuner.get_best_models(num_models=1)[0]
+
+# Gargabe collection
+del tuner
+K.clear_session()
+gc.collect()
 
 # Finale Trainingsdaten: train + val zusammenführen
 final_train_ds = train_ds.concatenate(val_ds)
