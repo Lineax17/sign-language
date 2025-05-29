@@ -1,6 +1,7 @@
 import random
 import shutil
 from pathlib import Path
+from PIL import Image
 
 # Einstellungen
 SEED = 467
@@ -40,19 +41,29 @@ for class_dir in ORIG_DIR.iterdir():
         val_images   = images[n_train:n_train + n_val]
         test_images  = images[n_train + n_val:]
 
+        def copy_and_flip(split_images, target_dir):
+            n_flip = len(split_images) // 2
+            flip_images = set(random.sample(split_images, n_flip)) if n_flip > 0 else set()
+            for img in split_images:
+                shutil.copy(img, target_dir / class_dir.name / img.name)
+                if img in flip_images:
+                    with Image.open(img) as im:
+                        im_flipped = im.transpose(Image.FLIP_LEFT_RIGHT)
+                        flipped_name = img.stem + "_flipped" + img.suffix
+                        im_flipped.save(target_dir / class_dir.name / flipped_name)
+            return n_flip
+
         # Zielverzeichnisse erstellen
         (TRAIN_DIR / class_dir.name).mkdir(parents=True, exist_ok=True)
         (VAL_DIR   / class_dir.name).mkdir(parents=True, exist_ok=True)
         (TEST_DIR  / class_dir.name).mkdir(parents=True, exist_ok=True)
 
-        # Dateien kopieren
-        for img in train_images:
-            shutil.copy(img, TRAIN_DIR / class_dir.name / img.name)
-        for img in val_images:
-            shutil.copy(img, VAL_DIR / class_dir.name / img.name)
-        for img in test_images:
-            shutil.copy(img, TEST_DIR / class_dir.name / img.name)
+        n_flip_train = copy_and_flip(train_images, TRAIN_DIR)
+        n_flip_val   = copy_and_flip(val_images, VAL_DIR)
+        n_flip_test  = copy_and_flip(test_images, TEST_DIR)
 
-        print(f"✅ {class_dir.name}: {len(train_images)} train, {len(val_images)} val, {len(test_images)} test")
+        print(f"✅ {class_dir.name}: {len(train_images)} train ({n_flip_train} gespiegelt), "
+              f"{len(val_images)} val ({n_flip_val} gespiegelt), "
+              f"{len(test_images)} test ({n_flip_test} gespiegelt)")
 
 print("\n✅ Split abgeschlossen.")
