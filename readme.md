@@ -1,5 +1,11 @@
 # ASL-Alphabet Recognizer
 
+Our ASL-Alphabet Recognizer is a neural network that can recognize the American Sign 
+Language (ASL) alphabet from images. The model is trained on a dataset of ASL hand 
+signs and can interpret the corresponding letter for a given image. Our trained models 
+are available in the ```/models``` directory. 
+If you want to train the model yourself, please follow the instructions below.
+
 ## Source of Dataset:
 
 The Dataset is GPLv2 licensed and available under following link:
@@ -26,13 +32,13 @@ dataset for the final training.
 Feel free to modify this script to experiment with this dataset.
 
 
-## How to run main.py file (efficiently with CUDA)
+## How to train the neural network yourself (efficiently with CUDA)
 
-### Windows:
+### Windows/Linux:
 
-#### Use WSL2 for Cuda acceleration:
+#### (On Windows use WSL2 for proper Cuda acceleration)
 
-Setup a new venv inside of wsl:
+Setup a new venv (inside of WSL if you`re on Windows):
 
 ``` python3 -m venv tf-gpu ```
 
@@ -46,12 +52,12 @@ Update pip inside of venv:
 
 Install with pip:
 
-``` pip install tensorflow[and-cuda] ```
+``` pip install tensorflow[and-cuda] keras-tuner h5py```
 
-### Linux: 
+Test if CUDA does list your GPU:
 
-You know what you`re doing...
+``` python3 test_cuda.py ```
 
-### MacOS:
+If you see your GPU listed, you can run the  file with:
 
-I dont care.
+``` python3 train_network.py ```
