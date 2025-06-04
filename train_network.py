@@ -52,6 +52,9 @@ test_ds = tf.keras.utils.image_dataset_from_directory(
     color_mode="grayscale"
 )
 
+# Klassenanzahl ermitteln
+num_classes = len(train_ds.class_names)
+
 # Graustufen auf 3 Kanäle bringen
 def to_rgb(ds):
     return ds.map(lambda x, y: (tf.image.grayscale_to_rgb(x), y))
@@ -59,9 +62,6 @@ def to_rgb(ds):
 train_ds = to_rgb(train_ds)
 val_ds = to_rgb(val_ds)
 test_ds = to_rgb(test_ds)
-
-# Klassenanzahl ermitteln
-num_classes = len(train_ds.class_names)
 
 # Prefetch für Performance, kann Speicherbedarf erhöhen
 AUTOTUNE = tf.data.AUTOTUNE
