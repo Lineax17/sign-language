@@ -25,7 +25,19 @@ hands = mp_hands.Hands(static_image_mode=False, max_num_hands=1, min_detection_c
 cap = cv2.VideoCapture(0)
 
 def preprocess_hand_roi(hand_roi):
-    resized = cv2.resize(hand_roi, (IMG_SIZE, IMG_SIZE))
+    # In Graustufen umwandeln
+    gray = cv2.cvtColor(hand_roi, cv2.COLOR_BGR2GRAY)
+
+    # Kontrastverstärkung durch Histogramm-Ausgleich
+    gray = cv2.equalizeHist(gray)
+
+    # Da das Modell 3 Kanäle erwartet, Graustufenbild in 3 Kanäle umwandeln
+    gray_3channel = cv2.cvtColor(gray, cv2.COLOR_GRAY2RGB)
+
+    # Auf richtige Größe skalieren
+    resized = cv2.resize(gray_3channel, (IMG_SIZE, IMG_SIZE))
+
+    # Normalisieren und Batch-Dimension hinzufügen
     normalized = resized.astype(np.float32) / 255.0
     input_tensor = np.expand_dims(normalized, axis=0)
     return input_tensor
