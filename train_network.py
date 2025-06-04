@@ -1,7 +1,7 @@
 import tensorflow as tf
 from tensorflow.keras import layers, models
 from tensorflow.keras.applications import MobileNetV2
-from kerastuner.tuners import RandomSearch
+import keras_tuner as kt
 import os
 import gc
 import tensorflow.keras.backend as K
@@ -10,7 +10,6 @@ from tensorflow.keras.mixed_precision import set_global_policy
 
 # Tweak für RTX 30xx oder neuer
 set_global_policy('mixed_float16')
-
 
 # Einstellungen
 IMG_HEIGHT = 224
@@ -32,34 +31,40 @@ train_ds = tf.keras.utils.image_dataset_from_directory(
     batch_size=BATCH_SIZE,
     label_mode="categorical",
     shuffle=True,
-    seed=SEED
+    seed=SEED,
+    color_mode="grayscale"
 )
-
 val_ds = tf.keras.utils.image_dataset_from_directory(
     VAL_DIR,
     image_size=(IMG_HEIGHT, IMG_WIDTH),
     batch_size=BATCH_SIZE,
     label_mode="categorical",
     shuffle=True,
-    seed=SEED
+    seed=SEED,
+    color_mode="grayscale"
 )
-
 test_ds = tf.keras.utils.image_dataset_from_directory(
     TEST_DIR,
     image_size=(IMG_HEIGHT, IMG_WIDTH),
     batch_size=BATCH_SIZE,
     label_mode="categorical",
-    shuffle=False
+    shuffle=False,
+    color_mode="grayscale"
 )
+
+# Graustufen auf 3 Kanäle bringen
+def to_rgb(ds):
+    return ds.map(lambda x, y: (tf.image.grayscale_to_rgb(x), y))
+
+train_ds = to_rgb(train_ds)
+val_ds = to_rgb(val_ds)
+test_ds = to_rgb(test_ds)
 
 # Klassenanzahl ermitteln
 num_classes = len(train_ds.class_names)
 
 # Prefetch für Performance, kann Speicherbedarf erhöhen
 AUTOTUNE = tf.data.AUTOTUNE
-# train_ds = train_ds.prefetch(AUTOTUNE)
-# val_ds = val_ds.prefetch(AUTOTUNE)
-# test_ds = test_ds.prefetch(AUTOTUNE)
 
 # Modellbau für Tuning
 def build_model(hp):
@@ -92,12 +97,12 @@ def build_model(hp):
     return model
 
 # Tuner initialisieren
-tuner = RandomSearch(
+tuner = kt.Hyperband(
     build_model,
     objective='val_accuracy',
+    max_epochs=10,
+    factor=3,
     seed=SEED,
-    max_trials=10,
-    executions_per_trial=2,
     directory='tuner_logs',
     project_name='asl_quick',
     overwrite=True
@@ -109,7 +114,7 @@ tuner.search(train_ds, validation_data=val_ds, epochs=EPOCHS)
 # Bestes Modell holen
 best_model = tuner.get_best_models(num_models=1)[0]
 
-# Gargabe collection
+# Garbage collection
 del tuner
 K.clear_session()
 gc.collect()
