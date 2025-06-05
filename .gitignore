@@ -6,3 +6,5 @@
 /asl_tuning
 peter_testing/models/trained_model.h5
 peter_testing/models/trained_model.tflite
+models/alexnet_tuned.h5
+models/alexnet_tuned.tflite
