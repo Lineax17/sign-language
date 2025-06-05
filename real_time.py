@@ -8,7 +8,7 @@ with open('data/class_name.txt', 'r') as f:
     CLASS_NAMES = [line.strip() for line in f]
 
 # === TFLite Modell vorbereiten ===
-TFLITE_PATH = 'models/sign_language_mobilenetv2.tflite'
+TFLITE_PATH = 'models/alexnet_tuned.tflite'
 #TFLITE_PATH = 'peter_testing/models/trained_model.tflite'
 IMG_SIZE = 224
 

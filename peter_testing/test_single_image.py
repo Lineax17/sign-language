@@ -1,38 +1,36 @@
-import tensorflow as tf
 import numpy as np
 import cv2
-import sys
+import tensorflow as tf
+from tensorflow.keras.preprocessing.image import img_to_array
+import os
 
-# ==== KONFIGURATION ====
-MODEL_PATH = "peter_testing/models/trained_model.h5"  # Pfad zum gespeicherten Modell
-IMAGE_PATH = "peter_testing/A508.jpg"  # Pfad zum zu testenden Bild
-IMAGE_SIZE = (224, 224)  # Muss zum Input des Modells passen
-CLASS_NAMES = [
-    "A", "B", "C", "D", "E", "F", "G", "H", "I",
-    "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T",
-    "U", "V", "W", "X", "Y", "Z", "del", "nothing", "space"
-]
+# === Pfade ===
+MODEL_PATH = "models/alexnet_tuned.h5"
+IMAGE_PATH = "peter_testing/A_test.jpeg"
+IMAGE_SIZE = (224, 224)
 
-# ==== BILD LADEN UND VORBEREITEN ====
-def load_and_preprocess_image(image_path):
-    image = cv2.imread(image_path)
-    if image is None:
-        print(f"❌ Bild konnte nicht geladen werden: {image_path}")
-        sys.exit(1)
-    image = cv2.resize(image, IMAGE_SIZE)
-    image = image / 255.0  # Normalisierung
-    image = np.expand_dims(image, axis=0)  # Batch-Dimension hinzufügen
-    return image
-
-# ==== MODELL LADEN ====
-print("🔄 Lade Modell...")
+# === Klassenlabels automatisch aus Model (empfohlen) ===
 model = tf.keras.models.load_model(MODEL_PATH)
 
-# ==== VORHERSAGE ====
-image = load_and_preprocess_image(IMAGE_PATH)
-prediction = model.predict(image)
-predicted_class = CLASS_NAMES[np.argmax(prediction)]
+# Umkehre class_indices (z. B. {0: 'A', 1: 'B', ...})
+class_indices = {'A': 0, 'B': 1, 'C': 2, 'D': 3, 'E': 4, 'F': 5, 'G': 6, 'H': 7, 'I': 8, 'J': 9,
+                 'K': 10, 'L': 11, 'M': 12, 'N': 13, 'O': 14, 'P': 15, 'Q': 16, 'R': 17, 'S': 18,
+                 'T': 19, 'U': 20, 'V': 21, 'W': 22, 'X': 23, 'Y': 24, 'Z': 25, 'del': 26,
+                 'nothing': 27, 'space': 28}
+index_to_label = {v: k for k, v in class_indices.items()}
 
-# ==== AUSGABE ====
-print(f"✅ Vorhergesagte Klasse: {predicted_class}")
+# === Bild vorbereiten ===
+img = cv2.imread(IMAGE_PATH)
+img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+img = cv2.resize(img, IMAGE_SIZE)
+img = img / 255.0
+img = img_to_array(img)
+img = np.expand_dims(img, axis=0)
+
+# === Vorhersage ===
+prediction = model.predict(img)
+predicted_index = np.argmax(prediction)
+predicted_label = index_to_label[predicted_index]
+
+print(f"✅ Vorhergesagt: {predicted_label}")
 print(f"🔍 Wahrscheinlichkeiten: {prediction}")
