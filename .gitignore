@@ -3,5 +3,6 @@
 /data/asl_alphabet_original/
 /data/asl_alphabet_val/
 /tf-gpu
-/peter_testing/models
 /asl_tuning
+peter_testing/models/trained_model.h5
+peter_testing/models/trained_model.tflite
