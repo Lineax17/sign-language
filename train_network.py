@@ -18,7 +18,7 @@ IMG_WIDTH = 224
 BATCH_SIZE = 8
 EPOCHS = 10
 SEED = 467
-MODEL_PATH = "models/sign_language_mobilenetv2.h5"
+MODEL_PATH = "peter_testing/models/sign_language_mobilenetv2.h5"
 
 # Verzeichnisse
 TRAIN_DIR = "data/asl_alphabet_train"

@@ -9,6 +9,7 @@ with open('data/class_name.txt', 'r') as f:
 
 # === TFLite Modell vorbereiten ===
 TFLITE_PATH = 'models/sign_language_mobilenetv2.tflite'
+#TFLITE_PATH = 'peter_testing/models/trained_model.tflite'
 IMG_SIZE = 224
 
 interpreter = tf.lite.Interpreter(model_path=TFLITE_PATH)
