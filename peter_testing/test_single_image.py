@@ -6,7 +6,7 @@ import os
 
 # === Pfade ===
 MODEL_PATH = "models/alexnet_tuned.h5"
-IMAGE_PATH = "peter_testing/A_test.jpeg"
+IMAGE_PATH = "peter_testing/own_A_test.png"
 IMAGE_SIZE = (224, 224)
 
 # === Klassenlabels automatisch aus Model (empfohlen) ===

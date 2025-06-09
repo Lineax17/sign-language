@@ -51,7 +51,7 @@ test_gen = datagen.flow_from_dataframe(
 # ---------------------------
 # Modell und Testdaten
 # ---------------------------
-model = load_model("peter_testing/models/sign_language_mobilenetv2.h5")
+model = load_model("models/alexnet_tuned.h5")
 
 # ---------------------------
 # Vorhersagen und wahre Labels
@@ -71,7 +71,7 @@ disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=classes)
 # ---------------------------
 plt.figure(figsize=(16, 16))
 disp.plot(cmap=plt.cm.Blues, xticks_rotation=45)
-plt.title("Confusion Matrix – Testdaten")
+plt.title("Confusion Matrix AlexNet Tuned – Testdaten")
 plt.tight_layout()
-plt.savefig("confusion_matrix_mobilenet.png")  # Speichern statt anzeigen
-print("✅ Confusion Matrix gespeichert unter: confusion_matrix_alexnet.png")
+plt.savefig("confusion_matrix_alexnet_tuned.png")  # Speichern statt anzeigen
+print("✅ Confusion Matrix gespeichert unter: confusion_matrix_alexnet_tuned.png")

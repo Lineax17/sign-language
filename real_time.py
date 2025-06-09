@@ -1,35 +1,39 @@
 import cv2
 import numpy as np
-import tensorflow as tf
 import mediapipe as mp
+import tensorflow as tf
+
+# === Konfiguration ===
+TFLITE_PATH = "models/alexnet_tuned.tflite"
+CLASS_FILE = "data/class_name.txt"
+IMG_SIZE = 224
 
 # === Klassen laden ===
-with open('data/class_name.txt', 'r') as f:
+with open(CLASS_FILE, 'r') as f:
     CLASS_NAMES = [line.strip() for line in f]
 
 # === TFLite Modell vorbereiten ===
-TFLITE_PATH = 'models/alexnet_tuned.tflite'
-#TFLITE_PATH = 'peter_testing/models/trained_model.tflite'
-IMG_SIZE = 224
-
 interpreter = tf.lite.Interpreter(model_path=TFLITE_PATH)
 interpreter.allocate_tensors()
 input_details = interpreter.get_input_details()
 output_details = interpreter.get_output_details()
 
-# === MediaPipe Hand-Modul ===
+# === MediaPipe vorbereiten ===
 mp_hands = mp.solutions.hands
-mp_drawing = mp.solutions.drawing_utils
 hands = mp_hands.Hands(static_image_mode=False, max_num_hands=1, min_detection_confidence=0.7)
 
 # === Kamera starten ===
 cap = cv2.VideoCapture(0)
 
-def preprocess_hand_roi(hand_roi):
-    resized = cv2.resize(hand_roi, (IMG_SIZE, IMG_SIZE))
+print("[INFO] Starte Live-Vorhersage... ESC zum Beenden")
+
+def preprocess_image(image):
+    resized = cv2.resize(image, (IMG_SIZE, IMG_SIZE))
     normalized = resized.astype(np.float32) / 255.0
-    input_tensor = np.expand_dims(normalized, axis=0)
-    return input_tensor
+    return np.expand_dims(normalized, axis=0)
+
+# Aktuelle Vorhersage (wird nur angezeigt wenn Hand erkannt)
+current_prediction = ""
 
 while True:
     ret, frame = cap.read()
@@ -39,13 +43,16 @@ while True:
     image_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     result = hands.process(image_rgb)
 
+    hand_detected = False
+
     if result.multi_hand_landmarks:
         for hand_landmarks in result.multi_hand_landmarks:
+            hand_detected = True  # Flag setzen
+
             h, w, _ = frame.shape
             x_min, y_min = w, h
             x_max = y_max = 0
 
-            # Bounding Box berechnen
             for lm in hand_landmarks.landmark:
                 x, y = int(lm.x * w), int(lm.y * h)
                 x_min = min(x_min, x)
@@ -53,37 +60,52 @@ while True:
                 x_max = max(x_max, x)
                 y_max = max(y_max, y)
 
-            # Sicherheitsrand
-            margin = 20
-            x_min = max(0, x_min - margin)
-            y_min = max(0, y_min - margin)
-            x_max = min(w, x_max + margin)
-            y_max = min(h, y_max + margin)
+            generous_margin = 150
+            x_min = max(0, x_min - generous_margin)
+            y_min = max(0, y_min - generous_margin)
+            x_max = min(w, x_max + generous_margin)
+            y_max = min(h, y_max + generous_margin)
 
-            # ROI ausschneiden
-            hand_roi = frame[y_min:y_max, x_min:x_max]
+            roi_w = x_max - x_min
+            roi_h = y_max - y_min
+            roi_size = max(roi_w, roi_h)
 
-            if hand_roi.size == 0:
-                continue  # Verhindert Fehler bei leeren Ausschnitten
+            cx = x_min + roi_w // 2
+            cy = y_min + roi_h // 2
+            half_size = roi_size // 2
 
-            input_tensor = preprocess_hand_roi(hand_roi)
+            q_x_min = max(0, cx - half_size)
+            q_y_min = max(0, cy - half_size)
+            q_x_max = min(w, cx + half_size)
+            q_y_max = min(h, cy + half_size)
 
-            # Modellvorhersage
+            roi = frame[q_y_min:q_y_max, q_x_min:q_x_max]
+
+            if roi.size == 0 or roi.shape[0] < 10 or roi.shape[1] < 10:
+                continue
+
+            # === Modellvorhersage ===
+            input_tensor = preprocess_image(roi)
             interpreter.set_tensor(input_details[0]['index'], input_tensor)
             interpreter.invoke()
             output = interpreter.get_tensor(output_details[0]['index'])
+
             pred_idx = np.argmax(output)
             confidence = output[0][pred_idx]
-            label = f'{CLASS_NAMES[pred_idx]} ({confidence:.2f})'
+            current_prediction = f'{CLASS_NAMES[pred_idx]} ({confidence:.2f})'
 
-            # Bounding Box und Label anzeigen
-            cv2.rectangle(frame, (x_min, y_min), (x_max, y_max), (0, 255, 0), 2)
-            cv2.putText(frame, label, (x_min, y_min - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
-            mp_drawing.draw_landmarks(frame, hand_landmarks, mp_hands.HAND_CONNECTIONS)
+    else:
+        # Wenn keine Hand erkannt: Vorhersage ausblenden
+        current_prediction = ""
 
-    cv2.imshow('ASL mit TFLite + MediaPipe', frame)
+    # === Anzeige der aktuellen Vorhersage ===
+    if current_prediction:
+        cv2.putText(frame, current_prediction, (10, 40), cv2.FONT_HERSHEY_SIMPLEX,
+                    1.2, (0, 255, 0), 3)
 
-    if cv2.waitKey(1) & 0xFF == 27:  # ESC zum Beenden
+    cv2.imshow('ASL Live-Vorhersage (ESC zum Beenden)', frame)
+
+    if cv2.waitKey(1) & 0xFF == 27:
         break
 
 cap.release()
