@@ -10,14 +10,14 @@ from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
 classes = [
     "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L",
     "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z",
-    "del", "nothing", "space"
+    "del", "space"
 ]
 
 # ==== Pfade ====
 train_dir = "/mnt/c/Users/peter/THD/4_Semester/Computer_Vision/images/train"
 val_dir = "/mnt/c/Users/peter/THD/4_Semester/Computer_Vision/images/val"
 test_dir = "/mnt/c/Users/peter/THD/4_Semester/Computer_Vision/images/test"
-model_path = "models/alexnet_tuned.h5"
+model_path = "models/alexnet_tuned2.h5"
 
 # ==== Hilfsfunktion ====
 def create_dataframe(image_dir):
