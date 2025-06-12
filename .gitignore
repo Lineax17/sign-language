@@ -8,3 +8,7 @@ peter_testing/models/trained_model.h5
 peter_testing/models/trained_model.tflite
 models/alexnet_tuned.h5
 models/alexnet_tuned.tflite
+/keras_tuner/alexnet_tuning
+models/alexnet_tuned2.h5
+models/alexnet_tuned2.tflite
+models/keras_model.h5
