@@ -5,18 +5,21 @@ from tensorflow.keras.preprocessing.image import img_to_array
 import os
 
 # === Pfade ===
-MODEL_PATH = "models/alexnet_tuned.h5"
-IMAGE_PATH = "peter_testing/own_A_test.png"
+MODEL_PATH = "models/alexnet_tuned2.h5"
+IMAGE_PATH = "saved_rois/W_test.jpg"
 IMAGE_SIZE = (224, 224)
 
 # === Klassenlabels automatisch aus Model (empfohlen) ===
 model = tf.keras.models.load_model(MODEL_PATH)
 
 # Umkehre class_indices (z. B. {0: 'A', 1: 'B', ...})
-class_indices = {'A': 0, 'B': 1, 'C': 2, 'D': 3, 'E': 4, 'F': 5, 'G': 6, 'H': 7, 'I': 8, 'J': 9,
-                 'K': 10, 'L': 11, 'M': 12, 'N': 13, 'O': 14, 'P': 15, 'Q': 16, 'R': 17, 'S': 18,
-                 'T': 19, 'U': 20, 'V': 21, 'W': 22, 'X': 23, 'Y': 24, 'Z': 25, 'del': 26,
-                 'nothing': 27, 'space': 28}
+class_indices = {
+    'A': 0, 'B': 1, 'C': 2, 'D': 3, 'del': 4, 'E': 5, 'F': 6, 'G': 7, 'H': 8, 'I': 9, 'J': 10,
+    'K': 11, 'L': 12, 'M': 13, 'N': 14, 'O': 15, 'P': 16, 'Q': 17, 'R': 18, 'S': 19, 'space': 20,
+    'T': 21, 'U': 22, 'V': 23, 'W': 24, 'X': 25, 'Y': 26, 'Z': 27
+}
+
+
 index_to_label = {v: k for k, v in class_indices.items()}
 
 # === Bild vorbereiten ===
