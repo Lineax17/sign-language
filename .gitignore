@@ -12,3 +12,5 @@ models/alexnet_tuned.tflite
 models/alexnet_tuned2.h5
 models/alexnet_tuned2.tflite
 models/keras_model.h5
+models/alexnet_tuned3.h5
+models/alexnet_tuned3.tflite
