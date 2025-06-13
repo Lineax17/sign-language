@@ -1,8 +1,5 @@
 import os
-import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, classification_report
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.applications import MobileNetV2
 from tensorflow.keras.models import Model
@@ -88,41 +85,3 @@ model.save(model_path)
 model = load_model(model_path)
 loss, acc = model.evaluate(test_gen)
 print(f"\n🧪 Final Test Accuracy: {acc * 100:.2f}%")
-
-# === Confusion Matrix ===
-y_true = test_gen.classes
-y_pred = np.argmax(model.predict(test_gen), axis=1)
-
-cm = confusion_matrix(y_true, y_pred)
-disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=test_gen.class_indices.keys())
-disp.plot(xticks_rotation=45, cmap="Blues")
-plt.title("Confusion Matrix (Testdaten)")
-plt.tight_layout()
-plt.show()
-
-# === Klassifikationsreport ===
-print("\n📊 Classification Report:")
-print(classification_report(y_true, y_pred, target_names=test_gen.class_indices.keys()))
-
-# === Trainingskurven ===
-plt.figure()
-plt.plot(history.history['accuracy'], label='Train Accuracy')
-plt.plot(history.history['val_accuracy'], label='Val Accuracy')
-plt.xlabel('Epoch')
-plt.ylabel('Accuracy')
-plt.title('Trainingsverlauf – Accuracy')
-plt.legend()
-plt.grid(True)
-plt.tight_layout()
-plt.show()
-
-plt.figure()
-plt.plot(history.history['loss'], label='Train Loss')
-plt.plot(history.history['val_loss'], label='Val Loss')
-plt.xlabel('Epoch')
-plt.ylabel('Loss')
-plt.title('Trainingsverlauf – Loss')
-plt.legend()
-plt.grid(True)
-plt.tight_layout()
-plt.show()
