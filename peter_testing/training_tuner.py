@@ -120,14 +120,14 @@ def build_model(hp):
 tuner = kt.RandomSearch(
     build_model,
     objective='val_accuracy',
-    max_trials=3,
+    max_trials=5,
     executions_per_trial=1,
     directory='keras_tuner',
     project_name='alexnet_tuning'
 )
 
 # ==== Tuning starten ====
-tuner.search(train_gen, validation_data=val_gen, epochs=30,
+tuner.search(train_gen, validation_data=val_gen, epochs=20,
              callbacks=[EarlyStopping(patience=2)])
 
 # ==== Bestes Modell speichern und evaluieren ====

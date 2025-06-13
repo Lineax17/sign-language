@@ -5,8 +5,8 @@ from tensorflow.keras.preprocessing.image import img_to_array
 import os
 
 # === Pfade ===
-MODEL_PATH = "models/alexnet_tuned2.h5"
-IMAGE_PATH = "saved_rois/W_test.jpg"
+MODEL_PATH = "models/alexnet_tuned3.h5"
+IMAGE_PATH = "saved_rois/B.jpg"
 IMAGE_SIZE = (224, 224)
 
 # === Klassenlabels automatisch aus Model (empfohlen) ===

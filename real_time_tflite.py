@@ -6,7 +6,7 @@ import time
 import os
 
 # === Konfiguration ===
-TFLITE_PATH = "models/keras_model.tflite"
+TFLITE_PATH = "models/mobilenetv2_transfer.tflite"
 IMG_SIZE = 224
 SAVE_INTERVAL = 5  # Sekunden
 SAVE_DIR = "saved_rois"
@@ -14,8 +14,8 @@ os.makedirs(SAVE_DIR, exist_ok=True)
 
 # === Klassen laden ===
 CLASS_NAMES = [
-    "A", "B", "C", "D", "delete", "E", "F", "G", "H", "I", "J", "K", "L",
-    "M", "N", "O", "P", "Q", "R", "S", "space", "T", "U", "V", "W", "X", "Y", "Z",
+    "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L",
+    "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "delete", "space"
 ]
 
 # === TFLite Modell vorbereiten ===
@@ -29,7 +29,7 @@ mp_hands = mp.solutions.hands
 hands = mp_hands.Hands(static_image_mode=False, max_num_hands=1, min_detection_confidence=0.7)
 
 # === Kamera starten ===
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(1)
 print("[INFO] Starte Live-Vorhersage... ESC zum Beenden")
 
 def preprocess_image(image):

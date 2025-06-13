@@ -47,11 +47,10 @@ test_gen = datagen.flow_from_dataframe(
     shuffle=False  # Wichtig für richtige Zuordnung!
 )
 
-
 # ---------------------------
 # Modell und Testdaten
 # ---------------------------
-model = load_model("models/alexnet_tuned2.h5")
+model = load_model("models/keras_model.h5")
 
 # ---------------------------
 # Vorhersagen und wahre Labels
