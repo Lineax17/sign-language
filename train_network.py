@@ -11,6 +11,7 @@ from tensorflow.keras.mixed_precision import set_global_policy
 # Tweak für RTX 30xx oder neuer
 set_global_policy('mixed_float16')
 
+
 # Einstellungen
 IMG_HEIGHT = 224
 IMG_WIDTH = 224
@@ -31,40 +32,34 @@ train_ds = tf.keras.utils.image_dataset_from_directory(
     batch_size=BATCH_SIZE,
     label_mode="categorical",
     shuffle=True,
-    seed=SEED,
-    color_mode="grayscale"
+    seed=SEED
 )
+
 val_ds = tf.keras.utils.image_dataset_from_directory(
     VAL_DIR,
     image_size=(IMG_HEIGHT, IMG_WIDTH),
     batch_size=BATCH_SIZE,
     label_mode="categorical",
     shuffle=True,
-    seed=SEED,
-    color_mode="grayscale"
+    seed=SEED
 )
+
 test_ds = tf.keras.utils.image_dataset_from_directory(
     TEST_DIR,
     image_size=(IMG_HEIGHT, IMG_WIDTH),
     batch_size=BATCH_SIZE,
     label_mode="categorical",
-    shuffle=False,
-    color_mode="grayscale"
+    shuffle=False
 )
 
 # Klassenanzahl ermitteln
 num_classes = len(train_ds.class_names)
 
-# Graustufen auf 3 Kanäle bringen
-def to_rgb(ds):
-    return ds.map(lambda x, y: (tf.image.grayscale_to_rgb(x), y))
-
-train_ds = to_rgb(train_ds)
-val_ds = to_rgb(val_ds)
-test_ds = to_rgb(test_ds)
-
 # Prefetch für Performance, kann Speicherbedarf erhöhen
 AUTOTUNE = tf.data.AUTOTUNE
+# train_ds = train_ds.prefetch(AUTOTUNE)
+# val_ds = val_ds.prefetch(AUTOTUNE)
+# test_ds = test_ds.prefetch(AUTOTUNE)
 
 # Modellbau für Tuning
 def build_model(hp):
@@ -114,7 +109,7 @@ tuner.search(train_ds, validation_data=val_ds, epochs=EPOCHS)
 # Bestes Modell holen
 best_model = tuner.get_best_models(num_models=1)[0]
 
-# Garbage collection
+# Gargabe collection
 del tuner
 K.clear_session()
 gc.collect()
