@@ -50,7 +50,7 @@ test_gen = datagen.flow_from_dataframe(
 # ---------------------------
 # Modell und Testdaten
 # ---------------------------
-model = load_model("models/keras_model.h5")
+model = load_model("models/mobilenetv2_transfer.h5")
 
 # ---------------------------
 # Vorhersagen und wahre Labels
@@ -70,7 +70,7 @@ disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=classes)
 # ---------------------------
 plt.figure(figsize=(16, 16))
 disp.plot(cmap=plt.cm.Blues, xticks_rotation=45)
-plt.title("Confusion Matrix AlexNet Tuned2 – Testdaten")
+plt.title("Confusion Matrix MobileNetV2 – Testdaten")
 plt.tight_layout()
-plt.savefig("confusion_matrix_alexnet_tuned2.png")  # Speichern statt anzeigen
-print("✅ Confusion Matrix gespeichert unter: confusion_matrix_alexnet_tuned2.png")
+plt.savefig("confusion_matrix_mobilenet_transfer.png")  # Speichern statt anzeigen
+print("✅ Confusion Matrix gespeichert unter: confusion_matrix_mobilenet_transfer.png")

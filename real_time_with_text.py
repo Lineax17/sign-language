@@ -5,15 +5,15 @@ import tensorflow as tf
 import time
 
 # === Konfiguration ===
-TFLITE_PATH = "models/keras_model.tflite"
+TFLITE_PATH = "models/mobilenetv2_transfer.tflite"
 IMG_SIZE = 224
 STABLE_DURATION = 2.0  # Sekunden bis Zeichen gültig ist
 
-# === Klassen laden ===
 CLASS_NAMES = [
-    "A", "B", "C", "D", "delete", "E", "F", "G", "H", "I", "J", "K", "L",
-    "M", "N", "O", "P", "Q", "R", "S", "space", "T", "U", "V", "W", "X", "Y", "Z",
+    "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L",
+    "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "delete", "space"
 ]
+
 
 # === TFLite Modell vorbereiten ===
 interpreter = tf.lite.Interpreter(model_path=TFLITE_PATH)
@@ -26,7 +26,7 @@ mp_hands = mp.solutions.hands
 hands = mp_hands.Hands(static_image_mode=False, max_num_hands=1, min_detection_confidence=0.7)
 
 # === Kamera starten ===
-cap = cv2.VideoCapture(1)
+cap = cv2.VideoCapture(0)
 print("[INFO] Starte Live-Vorhersage... ESC zum Beenden")
 
 def preprocess_image(image):
@@ -108,7 +108,6 @@ while True:
                         text_output = text_output[:-1]
                     else:
                         text_output += predicted_label
-                    print(f"[TEXT] Aktueller Text: {text_output}")
                     last_confirmed_label = None
                     label_start_time = None
             else:
