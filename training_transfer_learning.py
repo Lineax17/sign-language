@@ -12,7 +12,7 @@ from tensorflow.keras.models import load_model
 train_dir = "/mnt/c/Users/peter/THD/4_Semester/Computer_Vision/images/train_data"
 val_dir = "/mnt/c/Users/peter/THD/4_Semester/Computer_Vision/images/val_data"
 test_dir = "/mnt/c/Users/peter/THD/4_Semester/Computer_Vision/images/test_data"
-model_path = "models/mobilenetv2_transfer.h5"
+model_path = "models/mobilenetv2_freezed.h5"
 
 # === Klassen extrahieren ===
 classes = sorted(list(set(f.split('_')[0] for f in os.listdir(train_dir) if f.endswith(('.jpg', '.png')))))

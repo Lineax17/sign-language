@@ -50,7 +50,7 @@ test_gen = datagen.flow_from_dataframe(
 # ---------------------------
 # Modell und Testdaten
 # ---------------------------
-model = load_model("models/mobilenetv2_transfer.h5")
+model = load_model("models/mobilenetv2_freezed.h5")
 
 # ---------------------------
 # Vorhersagen und wahre Labels
