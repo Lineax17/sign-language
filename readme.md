@@ -1,6 +1,6 @@
 # ASL-Alphabet Recognizer
 
-Our ASL-Alphabet Recognizer is a neural network that can recognize the American Sign 
+Our ASL-Alphabet Recognizer is a convolutional neural network that can recognize the American Sign 
 Language (ASL) alphabet from images. The model is trained on a dataset of ASL hand 
 signs and can interpret the corresponding letter for a given image. Our trained models 
 are available in the ```/models``` directory. 

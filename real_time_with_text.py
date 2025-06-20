@@ -7,7 +7,7 @@ import time
 # === Konfiguration ===
 TFLITE_PATH = "models/mobilenetv2_unfreezed.tflite"
 IMG_SIZE = 224
-STABLE_DURATION = 2.0  # Sekunden bis Zeichen gültig ist
+STABLE_DURATION = 1.0  # Sekunden bis Zeichen gültig ist
 
 CLASS_NAMES = [
     "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L",
