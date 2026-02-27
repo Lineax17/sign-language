@@ -1,105 +1,98 @@
 import os
 import pandas as pd
 import tensorflow as tf
+from pathlib import Path
 from tensorflow.keras.applications import MobileNetV2
 from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Dense, Dropout, GlobalAveragePooling2D
-from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.layers import Dense, Dropout, GlobalAveragePooling2D, Input, RandomFlip, RandomRotation, RandomZoom, RandomContrast
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
-import tensorflow.keras.backend as K
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.models import load_model
 
-# === Pfade ===
-train_dir = "/mnt/c/Users/peter/THD/4_Semester/Computer_Vision/images/train_data"
-val_dir   = "/mnt/c/Users/peter/THD/4_Semester/Computer_Vision/images/val_data"
-test_dir  = "/mnt/c/Users/peter/THD/4_Semester/Computer_Vision/images/test_data"
-save_path = "/mnt/c/Users/peter/THD/4_Semester/Computer_Vision/project/sign-language/models/mobilenetv2_unfreezed.h5"
+# === Configuration ===
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
-# === Klassen extrahieren ===
-classes = sorted({f.split('_')[0] for f in os.listdir(train_dir) if f.endswith(('.jpg', '.png'))})
+TRAIN_DIR = BASE_DIR / "data" / "asl_alphabet_train"
+VAL_DIR = BASE_DIR / "data" / "asl_alphabet_val"
+TEST_DIR = BASE_DIR / "data" / "asl_alphabet_test"
+SAVE_MODEL_PATH = BASE_DIR / "models" / "asl_mobilenetv2_unfreezed.keras"
 
-def create_dataframe(image_dir):
-    return pd.DataFrame([
-        {"filename": f, "class": f.split('_')[0]}
-        for f in os.listdir(image_dir)
-        if f.endswith(('.jpg', '.png')) and f.split('_')[0] in classes
-    ])
+IMG_SIZE = (224, 224)
+BATCH_SIZE = 32
 
-train_df = create_dataframe(train_dir)
-val_df   = create_dataframe(val_dir)
-test_df  = create_dataframe(test_dir)
+SEED = 467
 
-# === Vereinfachte Augmentation (ohne Grayscale oder harte Transformationen) ===
-train_gen = ImageDataGenerator(
-    rescale=1./255,
-    rotation_range=15,
-    width_shift_range=0.1,
-    height_shift_range=0.1,
-    zoom_range=0.1,
-    brightness_range=[0.9, 1.1]
-).flow_from_dataframe(
-    train_df, train_dir, x_col='filename', y_col='class',
-    target_size=(224, 224), class_mode='categorical', batch_size=32
-)
+# === Global Tensorflow Seed ===
+tf.random.set_seed(SEED)
 
-val_gen = ImageDataGenerator(rescale=1./255).flow_from_dataframe(
-    val_df, val_dir, x_col='filename', y_col='class',
-    target_size=(224, 224), class_mode='categorical', batch_size=32
-)
+# === Loading Data ===
+def get_dataset(directory):
+    return tf.keras.utils.image_dataset_from_directory(
+        directory,
+        image_size=IMG_SIZE,
+        batch_size=BATCH_SIZE,
+        label_mode='categorical',
+        shuffle=True
+    )
 
-test_gen = ImageDataGenerator(rescale=1./255).flow_from_dataframe(
-    test_df, test_dir, x_col='filename', y_col='class',
-    target_size=(224, 224), class_mode='categorical', batch_size=32, shuffle=False
-)
+train_ds = get_dataset(TRAIN_DIR)
+val_ds   = get_dataset(VAL_DIR)
+test_ds  = get_dataset(TEST_DIR)
 
-# === MobileNetV2 laden (ohne Top)
-base_model = MobileNetV2(
-    input_shape=(224, 224, 3),
-    include_top=False,
-    weights='imagenet'
-)
+# === Save Classnames ===
+train_ds_raw = get_dataset(TRAIN_DIR)
+class_names = train_ds_raw.class_names
 
-# === Nur letzte 30 Layer trainierbar machen
+# === Prefetching & Caching ===
+train_ds = train_ds.cache().prefetch(buffer_size=tf.data.AUTOTUNE)
+val_ds = val_ds.cache().prefetch(buffer_size=tf.data.AUTOTUNE)
+
+# === Augmentation Layer ===
+data_augmentation = tf.keras.Sequential([
+    RandomFlip("vertical"),          # Random vertical flip
+    RandomRotation(0.1),             # Rotate +/- 10%
+    RandomZoom(0.1),                 # Zoom +/- 10%
+    RandomContrast(0.1)              # Contrast adjustment (replaces brightness)
+], name="augmentation_layer")
+
+# === Model construction: Transfer Learning with MobileNetV2 ===
+base_model = MobileNetV2(input_shape=(224, 224, 3), include_top=False, weights='imagenet')
+
+# Last 30 Layers trainable
 for layer in base_model.layers[:-30]:
     layer.trainable = False
 for layer in base_model.layers[-30:]:
     layer.trainable = True
 
-# === Klassifikator bauen
-x = base_model.output
+inputs = Input(shape=(224, 224, 3))
+x = data_augmentation(inputs)  # Augmentation is applied during training, ignored during inference
+x = tf.keras.applications.mobilenet_v2.preprocess_input(x) # MobileNetV2 Preprocessing
+x = base_model(x)
 x = GlobalAveragePooling2D()(x)
 x = Dense(512, activation='relu')(x)
 x = Dropout(0.5)(x)
-output = Dense(len(classes), activation='softmax')(x)
+output = Dense(len(class_names), activation='softmax')(x)
 
-# === Modell bauen
-model = Model(inputs=base_model.input, outputs=output)
+model = Model(inputs=inputs, outputs=output)
+model.compile(optimizer=Adam(1e-5), loss='categorical_crossentropy', metrics=['accuracy'])
 
-# === Kompilieren
-model.compile(
-    optimizer=Adam(learning_rate=1e-5),
-    loss='categorical_crossentropy',
-    metrics=['accuracy']
-)
-
-# === Callbacks
+# === Training ===
 callbacks = [
     EarlyStopping(patience=3, restore_best_weights=True),
-    ModelCheckpoint(save_path, save_best_only=True)
+    ModelCheckpoint(SAVE_MODEL_PATH, save_best_only=True)
 ]
 
-# === Training
 model.fit(
-    train_gen,
-    validation_data=val_gen,
-    epochs=15,
+    train_ds,
+    validation_data=val_ds,
+    epochs=20,
     callbacks=callbacks
 )
 
-# === Modell speichern
-model.save(save_path)
-print(f"✅ Modell gespeichert unter: {save_path}")
+# === Modell speichern ===
+model.save(SAVE_MODEL_PATH)
 
-# === Evaluation auf Testdaten
-loss, acc = model.evaluate(test_gen)
+# === Testbewertung ===
+model = load_model(SAVE_MODEL_PATH)
+loss, acc = model.evaluate(test_ds)
 print(f"\n🧪 Final Test Accuracy: {acc * 100:.2f}%")
