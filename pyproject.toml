@@ -11,6 +11,8 @@ authors = [
 ]
 dependencies = [
     "tensorflow[and-cuda]>=2.15.0",
+    "opencv-python>=4.7.0.68",
+    "mediapipe>=0.10.0",
     "h5py>=3.10",
     "pandas>=1.5.0",
     "keras-tuner>=1.1.0",

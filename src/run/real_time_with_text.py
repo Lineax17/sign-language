@@ -5,7 +5,7 @@ import tensorflow as tf
 import time
 
 # === Konfiguration ===
-TFLITE_PATH = "models/mobilenetv2_unfreezed.tflite"
+TFLITE_PATH = "models/asl_mobilenetv2_unfreezed.tflite"
 IMG_SIZE = 224
 STABLE_DURATION = 1.0  # Sekunden bis Zeichen gültig ist
 
