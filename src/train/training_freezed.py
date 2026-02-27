@@ -9,7 +9,7 @@ from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.models import load_model
 
 # === Pfade ===
-train_dir = "/mnt/c/Users/peter/THD/4_Semester/Computer_Vision/images/train_data"
+train_dir = "data/train_data"
 val_dir = "/mnt/c/Users/peter/THD/4_Semester/Computer_Vision/images/val_data"
 test_dir = "/mnt/c/Users/peter/THD/4_Semester/Computer_Vision/images/test_data"
 model_path = "models/mobilenetv2_freezed.h5"

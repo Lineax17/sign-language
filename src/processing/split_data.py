@@ -12,7 +12,7 @@ SPLIT_RATIOS = {
 }
 
 # Quell- und Zielverzeichnisse
-ORIG_DIR = Path("data/asl_alphabet_original")
+ORIG_DIR = Path("data/dataset-sign-language/asl")
 TRAIN_DIR = Path("data/asl_alphabet_train")
 VAL_DIR   = Path("data/asl_alphabet_val")
 TEST_DIR  = Path("data/asl_alphabet_test")
