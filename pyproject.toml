@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "asl-sign-language-classifier"
+version = "0.1.0"
+description = "A Project for Classifying ASL."
+authors = [
+    {name = "Lineax17", email = "lineax17@gmail.com"}
+]
+dependencies = [
+    "tensorflow>=2.10.0",
+    "pandas>=1.5.0",
+    "keras-tuner>=1.1.0",
+    "matplotlib>=3.5.0",
+    "numpy>=1.21.0"
+]
+requires-python = ">=3.9"
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "black",
+    "flake8"
+]
