@@ -1,87 +1,86 @@
 import os
 import pandas as pd
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
+import tensorflow as tf
 from tensorflow.keras.applications import MobileNetV2
 from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Dense, Dropout, GlobalAveragePooling2D
+from tensorflow.keras.layers import Dense, Dropout, GlobalAveragePooling2D, Input, RandomFlip, RandomRotation, RandomZoom, RandomContrast
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.models import load_model
 
-# === Pfade ===
-train_dir = "data/train_data"
-val_dir = "/mnt/c/Users/peter/THD/4_Semester/Computer_Vision/images/val_data"
-test_dir = "/mnt/c/Users/peter/THD/4_Semester/Computer_Vision/images/test_data"
-model_path = "models/mobilenetv2_freezed.h5"
+# === Configuration ===
+TRAIN_DIR = "data/asl_alphabet_train"
+VAL_DIR = "data/asl_alphabet_val"
+TEST_DIR = "data/asl_alphabet_test"
+SAVE_MODEL_PATH = "models/asl_mobilenetv2_freezed.h5"
 
-# === Klassen extrahieren ===
-classes = sorted(list(set(f.split('_')[0] for f in os.listdir(train_dir) if f.endswith(('.jpg', '.png')))))
+IMG_SIZE = (224, 224)
+BATCH_SIZE = 32
 
-# === DataFrame-Erstellung ===
-def create_dataframe(image_dir, classes):
-    return pd.DataFrame([
-        {'filename': f, 'class': f.split('_')[0]}
-        for f in os.listdir(image_dir)
-        if f.endswith(('.jpg', '.png')) and f.split('_')[0] in classes
-    ])
+SEED = 467
 
-train_df = create_dataframe(train_dir, classes)
-val_df = create_dataframe(val_dir, classes)
-test_df = create_dataframe(test_dir, classes)
+# === Global Tensorflow Seed ===
+tf.random.set_seed(SEED)
 
-# === ImageDataGenerator ===
-img_size = (224, 224)
-batch_size = 32
+# === Loading Data ===
+def get_dataset(directory):
+    return tf.keras.utils.image_dataset_from_directory(
+        directory,
+        image_size=IMG_SIZE,
+        batch_size=BATCH_SIZE,
+        label_mode='categorical',
+        shuffle=True
+    )
 
-train_gen = ImageDataGenerator(
-    rescale=1./255,
-    rotation_range=15,
-    width_shift_range=0.1,
-    height_shift_range=0.1,
-    zoom_range=0.1,
-    brightness_range=[0.8, 1.2]
-).flow_from_dataframe(
-    train_df, train_dir, x_col='filename', y_col='class',
-    target_size=img_size, class_mode='categorical', batch_size=batch_size)
+train_ds = get_dataset(TRAIN_DIR)
+val_ds   = get_dataset(VAL_DIR)
+test_ds  = get_dataset(TEST_DIR)
 
-val_gen = ImageDataGenerator(rescale=1./255).flow_from_dataframe(
-    val_df, val_dir, x_col='filename', y_col='class',
-    target_size=img_size, class_mode='categorical', batch_size=batch_size)
+# === Prefetching & Caching ===
+train_ds = train_ds.cache().prefetch(buffer_size=tf.data.AUTOTUNE)
+val_ds = val_ds.cache().prefetch(buffer_size=tf.data.AUTOTUNE)
 
-test_gen = ImageDataGenerator(rescale=1./255).flow_from_dataframe(
-    test_df, test_dir, x_col='filename', y_col='class',
-    target_size=img_size, class_mode='categorical', batch_size=batch_size, shuffle=False)
+# === Augmentation Layer ===
+data_augmentation = tf.keras.Sequential([
+    RandomFlip("vertical"),          # Random vertical flip
+    RandomRotation(0.1),             # Rotate +/- 10%
+    RandomZoom(0.1),                 # Zoom +/- 10%
+    RandomContrast(0.1)              # Contrast adjustment (replaces brightness)
+], name="augmentation_layer")
 
-# === Modellaufbau: Transfer Learning mit MobileNetV2 ===
+# === Model construction: Transfer Learning with MobileNetV2 ===
 base_model = MobileNetV2(input_shape=(224, 224, 3), include_top=False, weights='imagenet')
-base_model.trainable = False  # untere Schichten einfrieren
+base_model.trainable = False  # freeze lower layers
 
-x = base_model.output
+inputs = Input(shape=(224, 224, 3))
+x = data_augmentation(inputs)  # Augmentation is applied during training, ignored during inference
+x = tf.keras.applications.mobilenet_v2.preprocess_input(x) # MobileNetV2 Preprocessing
+x = base_model(x)
 x = GlobalAveragePooling2D()(x)
 x = Dense(512, activation='relu')(x)
 x = Dropout(0.5)(x)
-output = Dense(len(classes), activation='softmax')(x)
+output = Dense(len(train_ds.class_names), activation='softmax')(x)
 
-model = Model(inputs=base_model.input, outputs=output)
+model = Model(inputs=inputs, outputs=output)
 model.compile(optimizer=Adam(1e-4), loss='categorical_crossentropy', metrics=['accuracy'])
 
 # === Training ===
 callbacks = [
     EarlyStopping(patience=3, restore_best_weights=True),
-    ModelCheckpoint(model_path, save_best_only=True)
+    ModelCheckpoint(SAVE_MODEL_PATH, save_best_only=True)
 ]
 
-history = model.fit(
-    train_gen,
-    validation_data=val_gen,
+model.fit(
+    train_ds,
+    validation_data=val_ds,
     epochs=20,
     callbacks=callbacks
 )
 
 # === Modell speichern ===
-model.save(model_path)
+model.save(SAVE_MODEL_PATH)
 
 # === Testbewertung ===
-model = load_model(model_path)
-loss, acc = model.evaluate(test_gen)
+model = load_model(SAVE_MODEL_PATH)
+loss, acc = model.evaluate(test_ds)
 print(f"\n🧪 Final Test Accuracy: {acc * 100:.2f}%")
