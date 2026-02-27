@@ -13,3 +13,5 @@ models/alexnet_tuned3.h5
 models/alexnet_tuned3.tflite
 .python-version
 .venv
+src/asl_sign_language_classifier.egg-info
+uv.lock
