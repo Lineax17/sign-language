@@ -49,7 +49,6 @@ val_ds = val_ds.cache().prefetch(buffer_size=tf.data.AUTOTUNE)
 
 # === Augmentation Layer ===
 data_augmentation = tf.keras.Sequential([
-    RandomFlip("vertical"),          # Random vertical flip
     RandomRotation(0.1),             # Rotate +/- 10%
     RandomZoom(0.1),                 # Zoom +/- 10%
     RandomContrast(0.1)              # Contrast adjustment (replaces brightness)
