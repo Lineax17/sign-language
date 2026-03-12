@@ -30,8 +30,7 @@ cap = cv2.VideoCapture(0)
 print("[INFO] Starte Live-Vorhersage... ESC zum Beenden")
 
 def preprocess_image(image):
-    normalized = image.astype(np.float32) / 255.0
-    return np.expand_dims(normalized, axis=0)
+    return np.expand_dims(image.astype(np.float32), axis=0)
 
 # Zustände
 current_prediction = ""
