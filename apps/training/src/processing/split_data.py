@@ -11,12 +11,14 @@ SPLIT_RATIOS = {
     "test": 0.3
 }
 
+REPO_ROOT = Path(__file__).resolve().parents[4]
+
 # Define Paths
-SOURCE_DIR = Path("data/dataset-sign-language/asl")
+SOURCE_DIR = REPO_ROOT / "data" / "dataset-sign-language" / "asl"
 OUTPUT_DIRS = {
-    "train": Path("data/asl_alphabet_train"),
-    "val": Path("data/asl_alphabet_val"),
-    "test": Path("data/asl_alphabet_test")
+    "train": REPO_ROOT / "data" / "asl_alphabet_train",
+    "val": REPO_ROOT / "data" / "asl_alphabet_val",
+    "test": REPO_ROOT / "data" / "asl_alphabet_test"
 }
 
 def setup_directories(directories: Dict[str, Path]):

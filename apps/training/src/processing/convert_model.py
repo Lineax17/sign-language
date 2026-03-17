@@ -1,9 +1,9 @@
 import tensorflow as tf
 from pathlib import Path
 
-BASE_DIR = Path(__file__).resolve().parent.parent.parent
+REPO_ROOT = Path(__file__).resolve().parents[4]
 
-MODEL_PATH = BASE_DIR / "models" / "asl_mobilenetv2_unfreezed.keras"
+MODEL_PATH = REPO_ROOT / "models" / "asl_mobilenetv2_unfreezed.keras"
 TFLITE_PATH = str(Path(MODEL_PATH).with_suffix('.tflite'))
 
 # Modell laden

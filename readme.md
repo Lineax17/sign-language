@@ -1,63 +1,107 @@
 # ASL-Alphabet Recognizer
 
-Our ASL-Alphabet Recognizer is a convolutional neural network that can recognize the American Sign 
-Language (ASL) alphabet from images. The model is trained on a dataset of ASL hand 
-signs and can interpret the corresponding letter for a given image. Our trained models 
-are available in the ```/models``` directory. 
-If you want to train the model yourself, please follow the instructions below.
+ASL alphabet classification project with split workflows:
 
-## Source of Dataset:
+- Training and data processing in `apps/training` (target Python 3.13)
+- Live inference with webcam in `apps/live` (Python 3.11)
 
-The Dataset is GPLv2 licensed and available under following link:
+The project uses `uv` for Python version and dependency management.
+
+## Project layout
+
+- `apps/training/src/processing`: data split + model conversion
+- `apps/training/src/train`: training entrypoints
+- `apps/training/src/eval`: evaluation utilities (confusion matrix)
+- `apps/training/src/diagnostics`: GPU diagnostics
+- `apps/live/src/run`: live webcam inference
+- `apps/live/src/test`: single-image inference smoke test
+- `apps/live/src/config`: label mapping
+- `models`: shared exported models
+- `data`: shared datasets
+
+## Dataset source
+
+The dataset is GPLv2 licensed:
 
 https://www.kaggle.com/datasets/grassknoted/asl-alphabet?resource=download
 
-## Preparing the Dataset for training
+## Setup with uv
 
-1. Download the dataset from kaggle.com over the link above.
-2. Rename the folder ```.../archive/asl_alphabet_train/asl_alphabet_train``` to ```asl_alphabet_original```
-3. Copy the renamed folder to the ```/data``` directory
-4. Run the ```split_data.py``` script
+Run all commands from repository root unless noted.
 
-### Explaination on Splitting and Methodology
+### 1) Training environment (Python 3.13 target)
 
-The dataset consists of 2 directories: ```asl_alphabet_train``` which holds approximately 3000 images per letter
-and ```asl_alphabet_test``` which holds only one image per letter. 
-To simplify things we take only the ```asl_alphabet_train``` directory and split it into training, validation 
-and test data.
-The ```asl_alphabet_original``` directory stays untouched when you run the ```split_data.py``` script. The train, val and 
-test directories will be overwriten if you re-run the script. To ensure correct methodology we split into 50% test, 
-20% validation and 30% test data. We are tuning our neuronal net on the validation set and merge the train and validation
-dataset for the final training.
-Feel free to modify this script to experiment with this dataset.
+```bash
+cd apps/training
+uv python install 3.13
+uv sync
+```
 
+If dependency resolution fails on Python 3.13 (for example TensorFlow wheel availability), use the highest compatible version instead:
 
-## How to train the neural network yourself (efficiently with CUDA)
+```bash
+uv python install 3.12
+uv sync --python 3.12
+```
 
-### Windows/Linux:
+### 2) Live environment (Python 3.11)
 
-#### (On Windows use WSL2 for proper Cuda acceleration)
+```bash
+cd apps/live
+uv python install 3.11
+uv sync
+```
 
-Setup a new venv (inside of WSL if you`re on Windows):
+## Training workflow
 
-``` python3 -m venv tf-gpu ```
+### Prepare split dataset
 
-Activate the venv:
+```bash
+cd apps/training
+uv run python src/processing/split_data.py
+```
 
-``` source tf-gpu/bin/activate ```
+### Check CUDA visibility
 
-Update pip inside of venv:
+```bash
+cd apps/training
+uv run python src/diagnostics/test_cuda.py
+```
 
-``` pip install --upgrade pip ```
+### Train model
 
-Install with pip:
+```bash
+cd apps/training
+uv run python src/train/training_freezed.py
+uv run python src/train/training_unfreezed.py
+```
 
-``` pip install tensorflow[and-cuda] keras-tuner h5py```
+### Convert Keras to TFLite
 
-Test if CUDA does list your GPU:
+```bash
+cd apps/training
+uv run python src/processing/convert_model.py
+```
 
-``` python3 test_cuda.py ```
+### Generate confusion matrix
 
-If you see your GPU listed, you can run the  file with:
+```bash
+cd apps/training
+uv run python src/eval/confusion_matrix.py
+```
 
-``` python3 train_network.py ```
+## Live inference workflow
+
+### Run webcam inference
+
+```bash
+cd apps/live
+uv run python src/run/real_time_with_text.py
+```
+
+### Run single-image smoke test
+
+```bash
+cd apps/live
+uv run python src/test/test_single_image.py
+```

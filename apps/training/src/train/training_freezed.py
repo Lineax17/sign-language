@@ -1,21 +1,19 @@
-import os
-import pandas as pd
 import tensorflow as tf
 from pathlib import Path
 from tensorflow.keras.applications import MobileNetV2
 from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Dense, Dropout, GlobalAveragePooling2D, Input, RandomFlip, RandomRotation, RandomZoom, RandomContrast
+from tensorflow.keras.layers import Dense, Dropout, GlobalAveragePooling2D, Input, RandomRotation, RandomZoom, RandomContrast
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.models import load_model
 
 # === Configuration ===
-BASE_DIR = Path(__file__).resolve().parent.parent.parent
+REPO_ROOT = Path(__file__).resolve().parents[4]
 
-TRAIN_DIR = BASE_DIR / "data" / "asl_alphabet_train"
-VAL_DIR = BASE_DIR / "data" / "asl_alphabet_val"
-TEST_DIR = BASE_DIR / "data" / "asl_alphabet_test"
-SAVE_MODEL_PATH = BASE_DIR / "models" / "asl_mobilenetv2_unfreezed.keras"
+TRAIN_DIR = REPO_ROOT / "data" / "asl_alphabet_train"
+VAL_DIR = REPO_ROOT / "data" / "asl_alphabet_val"
+TEST_DIR = REPO_ROOT / "data" / "asl_alphabet_test"
+SAVE_MODEL_PATH = REPO_ROOT / "models" / "asl_mobilenetv2_freezed.keras"
 
 IMG_SIZE = (224, 224)
 BATCH_SIZE = 32
@@ -56,12 +54,7 @@ data_augmentation = tf.keras.Sequential([
 
 # === Model construction: Transfer Learning with MobileNetV2 ===
 base_model = MobileNetV2(input_shape=(224, 224, 3), include_top=False, weights='imagenet')
-
-# Last 30 Layers trainable
-for layer in base_model.layers[:-30]:
-    layer.trainable = False
-for layer in base_model.layers[-30:]:
-    layer.trainable = True
+base_model.trainable = False  # freeze lower layers
 
 inputs = Input(shape=(224, 224, 3))
 x = data_augmentation(inputs)  # Augmentation is applied during training, ignored during inference
@@ -73,7 +66,7 @@ x = Dropout(0.5)(x)
 output = Dense(len(class_names), activation='softmax')(x)
 
 model = Model(inputs=inputs, outputs=output)
-model.compile(optimizer=Adam(1e-5), loss='categorical_crossentropy', metrics=['accuracy'])
+model.compile(optimizer=Adam(1e-4), loss='categorical_crossentropy', metrics=['accuracy'])
 
 # === Training ===
 callbacks = [

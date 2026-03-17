@@ -3,9 +3,11 @@ import numpy as np
 import mediapipe as mp
 import tensorflow as tf
 import time
+from pathlib import Path
 
 # === Konfiguration ===
-TFLITE_PATH = "models/asl_mobilenetv2_unfreezed.tflite"
+REPO_ROOT = Path(__file__).resolve().parents[4]
+TFLITE_PATH = str(REPO_ROOT / "models" / "asl_mobilenetv2_unfreezed.tflite")
 IMG_SIZE = 224
 STABLE_DURATION = 1.0  # Sekunden bis Zeichen gültig ist
 
