@@ -13,7 +13,7 @@ REPO_ROOT = Path(__file__).resolve().parents[4]
 TRAIN_DIR = REPO_ROOT / "data" / "asl_alphabet_train"
 VAL_DIR = REPO_ROOT / "data" / "asl_alphabet_val"
 TEST_DIR = REPO_ROOT / "data" / "asl_alphabet_test"
-SAVE_MODEL_PATH = REPO_ROOT / "models" / "asl_mobilenetv2_unfreezed.keras"
+SAVE_MODEL_PATH = REPO_ROOT / "models" / "asl_mobilenetv2_unfreezed.h5"
 
 IMG_SIZE = (224, 224)
 BATCH_SIZE = 32
