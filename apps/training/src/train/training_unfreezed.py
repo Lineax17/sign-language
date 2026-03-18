@@ -76,7 +76,7 @@ model.compile(optimizer=Adam(1e-5), loss='categorical_crossentropy', metrics=['a
 # === Training ===
 callbacks = [
     EarlyStopping(patience=3, restore_best_weights=True),
-    ModelCheckpoint(SAVE_MODEL_PATH, save_best_only=True)
+    ModelCheckpoint(str(SAVE_MODEL_PATH), save_best_only=True)
 ]
 
 model.fit(
@@ -87,9 +87,9 @@ model.fit(
 )
 
 # === Modell speichern ===
-model.save(SAVE_MODEL_PATH)
+model.save(str(SAVE_MODEL_PATH))
 
 # === Testbewertung ===
-model = load_model(SAVE_MODEL_PATH)
+model = load_model(str(SAVE_MODEL_PATH))
 loss, acc = model.evaluate(test_ds)
 print(f"\n🧪 Final Test Accuracy: {acc * 100:.2f}%")
